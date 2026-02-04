@@ -1,12 +1,16 @@
-import React from "react";
+"use client";
+import Footer from "./components/Footer";
+import { Landing } from "./components/Landing";
 import Navbar from "./components/Navbar";
 
-const page = () => {
+const Page = () => {
   return (
     <>
       <Navbar />
+      <Landing />
+      <Footer />
     </>
   );
 };
 
-export default page;
+export default Page;
