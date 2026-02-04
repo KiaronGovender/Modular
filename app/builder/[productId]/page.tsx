@@ -20,7 +20,7 @@ import Footer from "@/app/components/Footer";
 export default function ProductBuilder() {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useRouter();
-  const { userRole, addToCart, cart } = useAppStore((store) => store);
+  const { userRole, addToCart } = useAppStore((store) => store);
 
   const product = products.find((p) => p.id === productId);
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
@@ -32,7 +32,6 @@ export default function ProductBuilder() {
     "size",
   ]);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [showCostBreakdown, setShowCostBreakdown] = useState(false);
 
   useEffect(() => {
     // Update quantity when role changes

@@ -16,14 +16,6 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 type PaystackResponse = { reference: string };
-type PaystackSetupOptions = {
-  key: string;
-  email: string;
-  amount: number;
-  ref?: string;
-  callback: (res: PaystackResponse) => void;
-  onClose: () => void;
-};
 
 export default function Checkout() {
   const navigate = useRouter();

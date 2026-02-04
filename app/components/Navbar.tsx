@@ -37,9 +37,9 @@ const Navbar = ({ onOpenRoleSelector }: Navbarprops) => {
             Products
           </Link>
           <Link
-            href="/dashboard"
+            href="/orders"
             className={`transition-colors ${
-              isActive("/dashboard")
+              isActive("/orders")
                 ? "text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             }`}
