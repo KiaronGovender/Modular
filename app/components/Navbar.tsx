@@ -10,7 +10,7 @@ interface Navbarprops {
 }
 
 const Navbar = ({ onOpenRoleSelector }: Navbarprops) => {
-  const { userRole, cart } = useAppStore((state) => state);
+  const { userRole, cart, setUserRole } = useAppStore((state) => state);
   const pathname = usePathname();
   const isActive = (path: string) => pathname === path;
   return (
@@ -53,7 +53,17 @@ const Navbar = ({ onOpenRoleSelector }: Navbarprops) => {
           {/* Role Switcher */}
           <div className="relative">
             <button
-              onClick={onOpenRoleSelector}
+              onClick={() => {
+                if (onOpenRoleSelector) return onOpenRoleSelector();
+                // Fallback: cycle through roles when no selector prop is provided
+                const next =
+                  userRole === "retail"
+                    ? "wholesale"
+                    : userRole === "wholesale"
+                      ? "distributor"
+                      : "retail";
+                setUserRole(next);
+              }}
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary hover:bg-muted transition-all group"
             >
               <User className="size-4" />

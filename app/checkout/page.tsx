@@ -15,12 +15,23 @@ import Image from "next/image";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
+type PaystackResponse = { reference: string };
+type PaystackSetupOptions = {
+  key: string;
+  email: string;
+  amount: number;
+  ref?: string;
+  callback: (res: PaystackResponse) => void;
+  onClose: () => void;
+};
+
 export default function Checkout() {
   const navigate = useRouter();
   const { cart, userRole, clearCart, addOrder } = useAppStore((store) => store);
   const [currentStep, setCurrentStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<string>("paystack");
 
   const [formData, setFormData] = useState({
     email: "",
@@ -31,49 +42,101 @@ export default function Checkout() {
     country: "South Africa",
   });
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target as HTMLInputElement;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
   const getCartItemTotal = (item: (typeof cart)[0]) => {
     const basePrice = getProductPrice(item.product, userRole);
     const modulesPrice = item.selectedModules.reduce((sum, moduleId) => {
       const mod = item.product.availableModules.find((m) => m.id === moduleId);
       return sum + (mod ? getModulePrice(mod, userRole) : 0);
     }, 0);
-    return basePrice + modulesPrice;
+    return (basePrice + modulesPrice) * (item.quantity || 1);
   };
 
   const subtotal = cart.reduce((sum, item) => sum + getCartItemTotal(item), 0);
   const shipping = calculateShipping(subtotal);
   const total = subtotal + shipping;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
 
-    // Simulate processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const amountSmallestUnit = Math.round(total * 100);
 
-    // Create order
-    const order = {
-      id: `ORD-${Date.now()}`,
-      date: new Date(),
-      items: cart,
-      total,
-      status: "pending" as const,
-      role: userRole,
-    };
+    if (paymentMethod === "paystack") {
+      try {
+        const resp = await fetch("/api/paystack/initialize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: formData.email || "customer@example.com",
+            amount: amountSmallestUnit,
+            metadata: {
+              items: cart.map((i) => ({
+                id: i.id,
+                qty: i.quantity,
+                product: i.product,
+                selectedModules: i.selectedModules,
+              })),
+              subtotal,
+              shipping,
+              total,
+            },
+            callback_url: `${window.location.origin}/paystack/return`,
+            currency: process.env.NEXT_PUBLIC_PAYSTACK_CURRENCY || undefined,
+          }),
+        });
 
-    addOrder(order);
-    clearCart();
-    setIsProcessing(false);
-    setOrderComplete(true);
+        const data = await resp.json();
+        if (!resp.ok) {
+          setIsProcessing(false);
+          alert(
+            data?.message || data?.error || "Paystack initialization failed",
+          );
+          return;
+        }
 
-    // Redirect after 2 seconds
-    setTimeout(() => {
-      navigate.push("/orders");
-    }, 2000);
+        const authUrl = data.data?.authorization_url;
+        if (authUrl) {
+          window.location.href = authUrl;
+          return;
+        }
+
+        setIsProcessing(false);
+        alert("Paystack did not return a redirect URL. Please try again.");
+        return;
+      } catch (err) {
+        console.error("Paystack init error", err);
+        setIsProcessing(false);
+        alert("Payment initialization failed. Please try again.");
+        return;
+      }
+    }
+
+    // Offline / fallback flow: simulate processing and create order locally
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      const order = {
+        id: `ORD-${Date.now()}`,
+        date: new Date(),
+        items: cart,
+        total,
+        status: "pending" as const,
+        role: userRole,
+      };
+
+      addOrder(order);
+      clearCart();
+      setOrderComplete(true);
+      setTimeout(() => navigate.push("/orders"), 2000);
+    } catch (err) {
+      console.error("Checkout failed", err);
+      setIsProcessing(false);
+      alert("Order failed. Please try again.");
+    }
   };
 
   useEffect(() => {
@@ -331,9 +394,45 @@ export default function Checkout() {
                     <div>
                       <h3 className="mb-6">Payment Method</h3>
                       <div className="p-6 bg-secondary/50 rounded-lg text-center text-muted-foreground">
-                        Payment integration would be configured here
-                        <br />
-                        (Stripe, PayFast, etc.)
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="text-sm">Choose a payment method</div>
+                          <div className="flex items-center gap-4">
+                            <label className="inline-flex items-center gap-2">
+                              <input
+                                type="radio"
+                                name="payment"
+                                value="paystack"
+                                checked={paymentMethod === "paystack"}
+                                onChange={() => setPaymentMethod("paystack")}
+                                className="form-radio"
+                              />
+                              <span>Paystack</span>
+                            </label>
+                            <label className="inline-flex items-center gap-2">
+                              <input
+                                type="radio"
+                                name="payment"
+                                value="offline"
+                                checked={paymentMethod === "offline"}
+                                onChange={() => setPaymentMethod("offline")}
+                                className="form-radio"
+                              />
+                              <span>Offline / Manual</span>
+                            </label>
+                          </div>
+
+                          {paymentMethod === "paystack" ? (
+                            <div className="text-xs text-muted-foreground">
+                              You&apos;ll be redirected to Paystack to complete
+                              the payment.
+                            </div>
+                          ) : (
+                            <div className="text-xs text-muted-foreground">
+                              We&apos;ll process your order and follow up with
+                              payment instructions.
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
 

@@ -85,7 +85,7 @@ export default function Orders() {
 
                 return (
                   <motion.div
-                    key={order.id}
+                    key={`${order.id}-${index}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
@@ -135,7 +135,7 @@ export default function Orders() {
                       <div className="p-6 space-y-4">
                         {order.items.map((item) => (
                           <div
-                            key={item.id}
+                            key={`${order.id}-${item.id}`}
                             className="flex items-center gap-4"
                           >
                             <div className="w-16 h-16 rounded-lg overflow-hidden bg-secondary relative shrink-0">
