@@ -1,7 +1,7 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Trash2, ShoppingBag, AlertCircle } from "lucide-react";
-
 import {
   getProductPrice,
   getModulePrice,
@@ -10,15 +10,12 @@ import {
 } from "@/app/utils/pricing";
 import { ROLE_REQUIREMENTS } from "@/app/types";
 import { Check } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useAppStore } from "../store/appStore";
 import Image from "next/image";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import { useAppStore } from "../store/appStore";
 
 export default function Cart() {
   const navigate = useRouter();
-  const { cart, removeFromCart, userRole } = useAppStore((store) => store);
+  const { cart, removeFromCart, userRole } = useAppStore((state) => state);
 
   const getCartItemTotal = (item: (typeof cart)[0]) => {
     const basePrice = getProductPrice(item.product, userRole);
@@ -43,257 +40,249 @@ export default function Cart() {
 
   if (cart.length === 0) {
     return (
-      <>
-        <Navbar />
-        <div className="min-h-screen flex items-center justify-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center"
+      <div className="min-h-screen flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <ShoppingBag className="size-16 mx-auto text-muted-foreground mb-4" />
+          <h2 className="mb-2">Your cart is empty</h2>
+          <p className="text-muted-foreground mb-8">
+            Start building your perfect setup
+          </p>
+          <button
+            onClick={() => navigate.push("/")}
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity"
           >
-            <ShoppingBag className="size-16 mx-auto text-muted-foreground mb-4" />
-            <h2 className="mb-2">Your cart is empty</h2>
-            <p className="text-muted-foreground mb-8">
-              Start building your perfect setup
-            </p>
-            <button
-              onClick={() => navigate.push("/")}
-              className="px-6 py-3 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity"
-            >
-              Browse Products
-            </button>
-          </motion.div>
-        </div>
-        <Footer />
-      </>
+            Browse Products
+          </button>
+        </motion.div>
+      </div>
     );
   }
 
   return (
-    <>
-      <Navbar />
-      <div className="min-h-screen bg-background py-12">
-        <div className="max-w-300 mx-auto px-8">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-12"
-          >
-            <h1 className="mb-2">Cart</h1>
-            <p className="text-muted-foreground">
-              {cart.length} {cart.length === 1 ? "item" : "items"} in your cart
-            </p>
-          </motion.div>
+    <div className="min-h-screen bg-background py-6 sm:py-12">
+      <div className="max-w-300 mx-auto px-4 sm:px-6 md:px-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 sm:mb-12"
+        >
+          <h1 className="mb-2 text-2xl sm:text-3xl">Cart</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            {cart.length} {cart.length === 1 ? "item" : "items"} in your cart
+          </p>
+        </motion.div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Cart Items */}
-            <div className="lg:col-span-2 space-y-4">
-              {cart.map((item, index) => {
-                const selectedModuleObjects = item.selectedModules
-                  .map((id) =>
-                    item.product.availableModules.find((m) => m.id === id),
-                  )
-                  .filter(Boolean);
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+          {/* Cart Items */}
+          <div className="lg:col-span-2 space-y-3 sm:space-y-4">
+            {cart.map((item, index) => {
+              const selectedModuleObjects = item.selectedModules
+                .map((id) =>
+                  item.product.availableModules.find((m) => m.id === id),
+                )
+                .filter(Boolean);
 
-                return (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="bg-card rounded-xl border border-border p-6"
-                  >
-                    <div className="flex gap-6">
-                      {/* Product Image */}
-                      <div className="w-32 h-32 rounded-lg overflow-hidden bg-secondary shrink-0 relative">
-                        <Image
-                          src={item.product.imageUrl}
-                          alt={item.product.name}
-                          className="object-cover"
-                          fill
-                        />
-                      </div>
-
-                      {/* Product Info */}
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="mb-1">{item.product.name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {item.product.description}
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => removeFromCart(item.id)}
-                            className="p-2 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-destructive"
-                          >
-                            <Trash2 className="size-4" />
-                          </button>
-                        </div>
-
-                        {/* Selected Modules */}
-                        {selectedModuleObjects.length > 0 && (
-                          <div className="space-y-1 mb-3">
-                            {selectedModuleObjects.map((mod) => (
-                              <div
-                                key={mod!.id}
-                                className="flex items-center justify-between text-sm"
-                              >
-                                <span className="text-muted-foreground">
-                                  {mod!.name}
-                                </span>
-                                {getModulePrice(mod!, userRole) > 0 && (
-                                  <span className="text-muted-foreground">
-                                    +
-                                    {formatPrice(
-                                      getModulePrice(mod!, userRole),
-                                    )}
-                                  </span>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Quantity */}
-                        {item.quantity > 1 && (
-                          <div className="mb-3 px-3 py-2 bg-secondary/30 rounded-lg">
-                            <span className="text-sm text-muted-foreground">
-                              Quantity:{" "}
-                              <span className="text-foreground font-medium">
-                                {item.quantity} units
-                              </span>
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Item Total */}
-                        <div className="flex items-center justify-between pt-3 border-t border-border">
-                          <span className="text-sm text-muted-foreground">
-                            Item total
-                          </span>
-                          <span className="font-medium">
-                            {formatPrice(getCartItemTotal(item))}
-                          </span>
-                        </div>
-                      </div>
+              return (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="bg-card rounded-xl border border-border p-4 sm:p-6"
+                >
+                  <div className="flex gap-3 sm:gap-6">
+                    {/* Product Image */}
+                    <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-lg overflow-hidden bg-secondary shrink-0 relative">
+                      <Image
+                        src={item.product.imageUrl}
+                        alt={item.product.name}
+                        className=" object-cover"
+                        fill
+                      />
                     </div>
-                  </motion.div>
-                );
-              })}
-            </div>
 
-            {/* Order Summary */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="lg:sticky lg:top-24 h-fit"
-            >
-              <div className="bg-card rounded-xl border border-border p-6">
-                <h3 className="mb-6">Order Summary</h3>
-
-                {/* MOQ Warning */}
-                {!meetsMinimumOrder && minimumOrderQuantity > 1 && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="mb-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg"
-                  >
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="size-5 text-amber-600 shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-1">
-                          Minimum Order Not Met
-                        </p>
-                        <p className="text-xs text-amber-800 dark:text-amber-200">
-                          You need {minimumOrderQuantity - totalQuantity} more{" "}
-                          {minimumOrderQuantity - totalQuantity === 1
-                            ? "unit"
-                            : "units"}{" "}
-                          to meet the{" "}
-                          {ROLE_REQUIREMENTS[userRole].discount.toLowerCase()}{" "}
-                          minimum order requirement.
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* Total Quantity Badge */}
-                {minimumOrderQuantity > 1 && (
-                  <div className="mb-4 px-4 py-3 bg-secondary/50 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">
-                        Total Quantity
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`text-sm font-medium ${
-                            meetsMinimumOrder
-                              ? "text-primary"
-                              : "text-amber-600"
-                          }`}
+                    {/* Product Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between mb-2 sm:mb-3 gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="mb-1 text-sm sm:text-base truncate">
+                            {item.product.name}
+                          </h3>
+                          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
+                            {item.product.description}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => removeFromCart(item.id)}
+                          className="p-1.5 sm:p-2 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-destructive shrink-0"
                         >
-                          {totalQuantity} / {minimumOrderQuantity} units
-                        </span>
-                        {meetsMinimumOrder && (
-                          <span className="size-5 flex items-center justify-center bg-primary/10 text-primary rounded-full">
-                            <Check className="size-3" />
+                          <Trash2 className="size-3.5 sm:size-4" />
+                        </button>
+                      </div>
+
+                      {/* Selected Modules */}
+                      {selectedModuleObjects.length > 0 && (
+                        <div className="space-y-1 mb-2 sm:mb-3">
+                          {selectedModuleObjects.map((module) => (
+                            <div
+                              key={module!.id}
+                              className="flex items-center justify-between text-xs sm:text-sm"
+                            >
+                              <span className="text-muted-foreground truncate pr-2">
+                                {module!.name}
+                              </span>
+                              {getModulePrice(module!, userRole) > 0 && (
+                                <span className="text-muted-foreground shrink-0">
+                                  +
+                                  {formatPrice(
+                                    getModulePrice(module!, userRole),
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Quantity */}
+                      {item.quantity > 1 && (
+                        <div className="mb-2 sm:mb-3 px-2 sm:px-3 py-1.5 sm:py-2 bg-secondary/30 rounded-lg">
+                          <span className="text-xs sm:text-sm text-muted-foreground">
+                            Quantity:{" "}
+                            <span className="text-foreground font-medium">
+                              {item.quantity} units
+                            </span>
                           </span>
-                        )}
+                        </div>
+                      )}
+
+                      {/* Item Total */}
+                      <div className="flex items-center justify-between pt-2 sm:pt-3 border-t border-border">
+                        <span className="text-xs sm:text-sm text-muted-foreground">
+                          Item total
+                        </span>
+                        <span className="font-medium text-sm sm:text-base">
+                          {formatPrice(getCartItemTotal(item))}
+                        </span>
                       </div>
                     </div>
                   </div>
-                )}
+                </motion.div>
+              );
+            })}
+          </div>
 
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span>{formatPrice(subtotal)}</span>
+          {/* Order Summary */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="lg:sticky lg:top-24 h-fit"
+          >
+            <div className="bg-card rounded-xl border border-border p-4 sm:p-6">
+              <h3 className="mb-4 sm:mb-6 text-base sm:text-lg">
+                Order Summary
+              </h3>
+
+              {/* MOQ Warning */}
+              {!meetsMinimumOrder && minimumOrderQuantity > 1 && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="mb-4 sm:mb-6 p-3 sm:p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg"
+                >
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <AlertCircle className="size-4 sm:size-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs sm:text-sm font-medium text-amber-900 dark:text-amber-100 mb-1">
+                        Minimum Order Not Met
+                      </p>
+                      <p className="text-[10px] sm:text-xs text-amber-800 dark:text-amber-200">
+                        You need {minimumOrderQuantity - totalQuantity} more{" "}
+                        {minimumOrderQuantity - totalQuantity === 1
+                          ? "unit"
+                          : "units"}{" "}
+                        to meet the{" "}
+                        {ROLE_REQUIREMENTS[userRole].discount.toLowerCase()}{" "}
+                        minimum order requirement.
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Shipping</span>
-                    <span>
-                      {shipping === 0 ? "Free" : formatPrice(shipping)}
-                    </span>
-                  </div>
-                  <div className="h-px bg-border" />
+                </motion.div>
+              )}
+
+              {/* Total Quantity Badge */}
+              {minimumOrderQuantity > 1 && (
+                <div className="mb-3 sm:mb-4 px-3 sm:px-4 py-2 sm:py-3 bg-secondary/50 rounded-lg">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">Total</span>
-                    <span className="text-2xl font-semibold">
-                      {formatPrice(total)}
+                    <span className="text-xs sm:text-sm text-muted-foreground">
+                      Total Quantity
                     </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-xs sm:text-sm font-medium ${meetsMinimumOrder ? "text-primary" : "text-amber-600"
+                          }`}
+                      >
+                        {totalQuantity} / {minimumOrderQuantity} units
+                      </span>
+                      {meetsMinimumOrder && (
+                        <span className="size-4 sm:size-5 flex items-center justify-center bg-primary/10 text-primary rounded-full">
+                          <Check className="size-2.5 sm:size-3" />
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
+              )}
 
-                <button
-                  onClick={() => navigate.push("/checkout")}
-                  disabled={!meetsMinimumOrder}
-                  className={`w-full px-6 py-4 rounded-xl transition-all ${
-                    meetsMinimumOrder
-                      ? "bg-primary text-primary-foreground hover:opacity-90"
-                      : "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
-                  }`}
-                >
-                  {meetsMinimumOrder
-                    ? "Proceed to Checkout"
-                    : "Minimum Order Not Met"}
-                </button>
-
-                <button
-                  onClick={() => navigate.push("/")}
-                  className="w-full mt-3 px-6 py-3 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Continue Shopping
-                </button>
+              <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+                <div className="flex items-center justify-between text-xs sm:text-sm">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>{formatPrice(subtotal)}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs sm:text-sm">
+                  <span className="text-muted-foreground">Shipping</span>
+                  <span>{shipping === 0 ? "Free" : formatPrice(shipping)}</span>
+                </div>
+                <div className="h-px bg-border" />
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-sm sm:text-base">
+                    Total
+                  </span>
+                  <span className="text-xl sm:text-2xl font-semibold">
+                    {formatPrice(total)}
+                  </span>
+                </div>
               </div>
-            </motion.div>
-          </div>
+
+              <button
+                onClick={() => navigate.push("/checkout")}
+                disabled={!meetsMinimumOrder}
+                className={`w-full px-4 sm:px-6 py-3 sm:py-4 rounded-xl transition-all text-sm sm:text-base ${meetsMinimumOrder
+                  ? "bg-primary text-primary-foreground hover:opacity-90"
+                  : "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
+                  }`}
+              >
+                {meetsMinimumOrder
+                  ? "Proceed to Checkout"
+                  : "Minimum Order Not Met"}
+              </button>
+
+              <button
+                onClick={() => navigate.push("/")}
+                className="w-full mt-2 sm:mt-3 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Continue Shopping
+              </button>
+            </div>
+          </motion.div>
         </div>
       </div>
-      <Footer />
-    </>
+    </div>
   );
 }

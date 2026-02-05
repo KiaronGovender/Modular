@@ -68,28 +68,28 @@ export default function BusinessPricingBanner({
           transition={{ duration: 0.3 }}
           className="fixed top-0 left-0 right-0 z-40 bg-primary/10 border-b border-primary/20 backdrop-blur-md"
         >
-          <div className="max-w-350 mx-auto px-6 py-3">
-            <div className="flex items-center justify-between gap-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
               {/* Message */}
               <button
                 onClick={handleClick}
-                className="flex items-center gap-3 hover:opacity-80 transition-opacity group flex-1"
+                className="flex items-center gap-3 hover:opacity-80 transition-opacity group flex-1 text-center sm:text-left"
               >
                 <p className="text-sm text-foreground">
-                  <span className="font-medium">
+                  <span className="font-medium block sm:inline">
                     Shopping for your business?
                   </span>
-                  <span className="text-muted-foreground ml-2">
+                  <span className="text-muted-foreground ml-0 sm:ml-2 block sm:inline">
                     Save up to 30% with Wholesale or Distributor pricing
                   </span>
                 </p>
-                <ArrowRight className="size-4 text-primary group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="hidden sm:block size-4 text-primary group-hover:translate-x-1 transition-transform" />
               </button>
 
               {/* Dismiss Button */}
               <button
                 onClick={handleDismiss}
-                className="text-muted-foreground hover:text-foreground transition-colors p-1"
+                className="absolute right-2 top-2 sm:relative sm:top-0 sm:right-0 text-muted-foreground hover:text-foreground transition-colors p-1"
                 aria-label="Dismiss banner"
               >
                 <X className="size-5" />

@@ -10,17 +10,17 @@ import {
   formatPrice,
   getRoleBadgeLabel,
   calculateShipping,
-} from "@/app/utils/pricing";
+} from "../../utils/pricing";
 import { Module, ROLE_REQUIREMENTS } from "@/app/types";
-import Image from "next/image";
 import { useAppStore } from "@/app/store/appStore";
+import Image from "next/image";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 
 export default function ProductBuilder() {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useRouter();
-  const { userRole, addToCart } = useAppStore((store) => store);
+  const { userRole, addToCart, cart } = useAppStore((state) => state);
 
   const product = products.find((p) => p.id === productId);
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
@@ -32,6 +32,7 @@ export default function ProductBuilder() {
     "size",
   ]);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showCostBreakdown, setShowCostBreakdown] = useState(false);
 
   useEffect(() => {
     // Update quantity when role changes
@@ -161,36 +162,36 @@ export default function ProductBuilder() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-background pb-16">
-        <div className="max-w-350 mx-auto px-8 pt-8">
+      <div className="min-h-screen bg-background pb-8 sm:pb-16">
+        <div className="max-w-350 mx-auto px-4 sm:px-6 md:px-8 pt-4 sm:pt-8">
           {/* Breadcrumb */}
-          <div className="mb-8">
+          <div className="mb-4 sm:mb-8">
             <button
               onClick={() => navigate.push("/")}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               ← Back to products
             </button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
             {/* Left: Product Preview */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
-              className="sticky top-24 h-fit"
+              className="lg:sticky lg:top-24 h-fit"
             >
-              <div className="aspect-square rounded-2xl overflow-hidden bg-secondary border border-border relative">
+              <div className="aspect-square rounded-xl sm:rounded-2xl overflow-hidden bg-secondary border border-border relative">
                 <Image
                   src={product.imageUrl}
                   alt={product.name}
-                  fill
                   className="object-cover"
+                  fill
                 />
 
                 {/* Configuration Overlay */}
-                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent flex flex-col justify-end p-6">
+                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent flex flex-col justify-end p-3 sm:p-6">
                   <AnimatePresence mode="popLayout">
                     {getSelectedModules().map((module, index) => (
                       <motion.div
@@ -199,17 +200,17 @@ export default function ProductBuilder() {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ delay: index * 0.05 }}
-                        className="mb-2 px-3 py-2 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 text-white"
+                        className="mb-1.5 sm:mb-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 text-white"
                       >
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                            <span className="text-sm font-medium">
+                        <div className="flex items-center justify-between gap-2 sm:gap-3">
+                          <div className="flex items-center gap-1.5 sm:gap-2">
+                            <div className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-white" />
+                            <span className="text-xs sm:text-sm font-medium">
                               {module.name}
                             </span>
                           </div>
                           {getModulePrice(module, userRole) > 0 && (
-                            <span className="text-xs text-white/80">
+                            <span className="text-[10px] sm:text-xs text-white/80">
                               +{formatPrice(getModulePrice(module, userRole))}
                             </span>
                           )}
@@ -219,26 +220,28 @@ export default function ProductBuilder() {
                   </AnimatePresence>
                 </div>
               </div>
-              <div className="mt-6">
-                <h2 className="mb-2">{product.name}</h2>
-                <p className="text-muted-foreground">{product.description}</p>
+              <div className="mt-4 sm:mt-6">
+                <h2 className="mb-2 text-xl sm:text-2xl">{product.name}</h2>
+                <p className="text-sm sm:text-base text-muted-foreground">
+                  {product.description}
+                </p>
 
                 {/* Live Configuration Summary */}
                 <motion.div
-                  className="mt-4 p-4 bg-secondary/50 rounded-lg"
+                  className="mt-3 sm:mt-4 p-3 sm:p-4 bg-secondary/50 rounded-lg"
                   layout
                 >
-                  <div className="text-sm text-muted-foreground mb-2">
+                  <div className="text-xs sm:text-sm text-muted-foreground mb-2">
                     Current Configuration
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2">
                     {getSelectedModules().map((module) => (
                       <motion.div
                         key={module.id}
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.8, opacity: 0 }}
-                        className="px-2 py-1 bg-card rounded-md border border-border text-xs"
+                        className="px-2 py-1 bg-card rounded-md border border-border text-[10px] sm:text-xs"
                       >
                         {module.name}
                       </motion.div>
@@ -255,22 +258,22 @@ export default function ProductBuilder() {
               transition={{ duration: 0.5, delay: 0.1 }}
             >
               {/* Base Product */}
-              <div className="mb-6 p-6 bg-card rounded-xl border border-border">
+              <div className="mb-4 sm:mb-6 p-4 sm:p-6 bg-card rounded-xl border border-border">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4>Base Product</h4>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <h4 className="text-sm sm:text-base">Base Product</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                       {product.name} · {getRoleBadgeLabel(userRole)}
                     </p>
                   </div>
-                  <span className="font-medium">
+                  <span className="font-medium text-sm sm:text-base">
                     {formatPrice(getProductPrice(product, userRole))}
                   </span>
                 </div>
               </div>
 
               {/* Modules */}
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {Object.entries(groupedModules).map(([category, modules]) => (
                   <div
                     key={category}
@@ -279,9 +282,11 @@ export default function ProductBuilder() {
                     {/* Category Header */}
                     <button
                       onClick={() => toggleCategory(category)}
-                      className="w-full px-6 py-4 flex items-center justify-between hover:bg-secondary/50 transition-colors"
+                      className="w-full px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between hover:bg-secondary/50 transition-colors"
                     >
-                      <h4>{categoryLabels[category]}</h4>
+                      <h4 className="text-sm sm:text-base">
+                        {categoryLabels[category]}
+                      </h4>
                       <motion.div
                         animate={{
                           rotate: expandedCategories.includes(category)
@@ -290,7 +295,7 @@ export default function ProductBuilder() {
                         }}
                         transition={{ duration: 0.2 }}
                       >
-                        <ChevronDown className="size-5 text-muted-foreground" />
+                        <ChevronDown className="size-4 sm:size-5 text-muted-foreground" />
                       </motion.div>
                     </button>
 
@@ -304,7 +309,7 @@ export default function ProductBuilder() {
                           transition={{ duration: 0.2 }}
                           className="overflow-hidden"
                         >
-                          <div className="px-6 pb-4 space-y-2">
+                          <div className="px-4 sm:px-6 pb-3 sm:pb-4 space-y-2">
                             {modules.map((module) => {
                               const selected = isModuleSelected(module.id);
                               const incompatible = isModuleIncompatible(module);
@@ -320,32 +325,31 @@ export default function ProductBuilder() {
                                   whileTap={
                                     !incompatible ? { scale: 0.98 } : {}
                                   }
-                                  className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                                    selected
-                                      ? "border-primary bg-primary/5"
-                                      : incompatible
-                                        ? "border-border bg-muted/30 opacity-50 cursor-not-allowed"
-                                        : "border-border hover:border-primary/50 bg-card"
-                                  }`}
+                                  className={`w-full p-3 sm:p-4 rounded-lg border-2 transition-all text-left ${selected
+                                    ? "border-primary bg-primary/5"
+                                    : incompatible
+                                      ? "border-border bg-muted/30 opacity-50 cursor-not-allowed"
+                                      : "border-border hover:border-primary/50 bg-card"
+                                    }`}
                                 >
-                                  <div className="flex items-start justify-between gap-4">
+                                  <div className="flex items-start justify-between gap-3 sm:gap-4">
                                     <div className="flex-1">
                                       <div className="flex items-center gap-2">
-                                        <span className="font-medium">
+                                        <span className="font-medium text-xs sm:text-sm">
                                           {module.name}
                                         </span>
                                         {selected && (
-                                          <Check className="size-4 text-primary" />
+                                          <Check className="size-3 sm:size-4 text-primary" />
                                         )}
                                       </div>
                                       {module.description && (
-                                        <p className="text-sm text-muted-foreground mt-1">
+                                        <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                                           {module.description}
                                         </p>
                                       )}
                                       {incompatible && (
-                                        <div className="flex items-center gap-1.5 mt-2 text-sm text-amber-600">
-                                          <AlertCircle className="size-4" />
+                                        <div className="flex items-center gap-1.5 mt-2 text-xs sm:text-sm text-amber-600">
+                                          <AlertCircle className="size-3 sm:size-4" />
                                           <span>
                                             Not compatible with current
                                             configuration
@@ -355,11 +359,11 @@ export default function ProductBuilder() {
                                     </div>
                                     <div className="text-right">
                                       {price > 0 ? (
-                                        <span className="text-sm text-muted-foreground">
+                                        <span className="text-xs sm:text-sm text-muted-foreground">
                                           +{formatPrice(price)}
                                         </span>
                                       ) : (
-                                        <span className="text-sm text-muted-foreground">
+                                        <span className="text-xs sm:text-sm text-muted-foreground">
                                           Included
                                         </span>
                                       )}
@@ -381,22 +385,22 @@ export default function ProductBuilder() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="sticky bottom-8 mt-8 p-6 bg-card rounded-xl border border-border shadow-lg"
+                className="sticky bottom-4 sm:bottom-8 mt-6 sm:mt-8 p-4 sm:p-6 bg-card rounded-xl border border-border shadow-lg"
               >
                 {/* Quantity Selector */}
-                <div className="mb-4 p-4 bg-secondary/30 rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
+                <div className="mb-3 sm:mb-4 p-3 sm:p-4 bg-secondary/30 rounded-lg">
+                  <div className="flex items-center justify-between mb-2 sm:mb-3">
                     <div>
-                      <span className="text-sm">Quantity</span>
+                      <span className="text-xs sm:text-sm">Quantity</span>
                       {ROLE_REQUIREMENTS[userRole].minimumOrderQuantity > 1 && (
-                        <p className="text-xs text-muted-foreground mt-0.5">
+                        <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
                           Min.{" "}
                           {ROLE_REQUIREMENTS[userRole].minimumOrderQuantity}{" "}
                           units for {getRoleBadgeLabel(userRole)} pricing
                         </p>
                       )}
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                       <button
                         onClick={() =>
                           setQuantity(
@@ -410,25 +414,25 @@ export default function ProductBuilder() {
                           quantity <=
                           ROLE_REQUIREMENTS[userRole].minimumOrderQuantity
                         }
-                        className="p-2 rounded-lg bg-background border border-border hover:bg-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        className="p-1.5 sm:p-2 rounded-lg bg-background border border-border hover:bg-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                       >
-                        <Minus className="size-4" />
+                        <Minus className="size-3 sm:size-4" />
                       </button>
-                      <span className="text-lg font-medium min-w-[3ch] text-center">
+                      <span className="text-base sm:text-lg font-medium min-w-[2ch] sm:min-w-[3ch] text-center">
                         {quantity}
                       </span>
                       <button
                         onClick={() => setQuantity(quantity + 1)}
-                        className="p-2 rounded-lg bg-background border border-border hover:bg-secondary transition-colors"
+                        className="p-1.5 sm:p-2 rounded-lg bg-background border border-border hover:bg-secondary transition-colors"
                       >
-                        <Plus className="size-4" />
+                        <Plus className="size-3 sm:size-4" />
                       </button>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
+                <div className="space-y-2 sm:space-y-3">
+                  <div className="flex items-center justify-between text-xs sm:text-sm">
                     <span className="text-muted-foreground">Unit Price</span>
                     <motion.span
                       key={subtotal}
@@ -440,7 +444,7 @@ export default function ProductBuilder() {
                     </motion.span>
                   </div>
                   {quantity > 1 && (
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-xs sm:text-sm">
                       <span className="text-muted-foreground">
                         Subtotal ({quantity} units)
                       </span>
@@ -455,7 +459,7 @@ export default function ProductBuilder() {
                       </motion.span>
                     </div>
                   )}
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-xs sm:text-sm">
                     <span className="text-muted-foreground">
                       Estimated Shipping
                     </span>
@@ -470,13 +474,15 @@ export default function ProductBuilder() {
                   </div>
                   <div className="h-px bg-border" />
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">Total</span>
+                    <span className="font-medium text-sm sm:text-base">
+                      Total
+                    </span>
                     <motion.span
                       key={total * quantity}
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.3 }}
-                      className="text-2xl font-semibold"
+                      className="text-xl sm:text-2xl font-semibold"
                     >
                       {formatPrice(subtotal * quantity + shipping)}
                     </motion.span>
@@ -485,7 +491,7 @@ export default function ProductBuilder() {
 
                 <button
                   onClick={handleAddToCart}
-                  className="w-full mt-6 px-6 py-4 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity"
+                  className="w-full mt-4 sm:mt-6 px-4 sm:px-6 py-3 sm:py-4 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity text-sm sm:text-base"
                 >
                   Add {quantity > 1 ? `${quantity} Units` : ""} to Cart
                 </button>
@@ -501,10 +507,10 @@ export default function ProductBuilder() {
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
-              className="fixed bottom-8 right-8 px-6 py-4 bg-primary text-primary-foreground rounded-xl shadow-lg flex items-center gap-3"
+              className="fixed bottom-4 sm:bottom-8 right-4 sm:right-8 px-4 sm:px-6 py-3 sm:py-4 bg-primary text-primary-foreground rounded-xl shadow-lg flex items-center gap-2 sm:gap-3"
             >
-              <Check className="size-5" />
-              <span>Added to cart</span>
+              <Check className="size-4 sm:size-5" />
+              <span className="text-sm sm:text-base">Added to cart</span>
             </motion.div>
           )}
         </AnimatePresence>

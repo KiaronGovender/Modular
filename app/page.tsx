@@ -1,11 +1,11 @@
 "use client";
 import { useState } from "react";
 import Footer from "./components/Footer";
-import { Landing } from "./components/Landing";
 import Navbar from "./components/Navbar";
 import { useAppStore } from "./store/appStore";
 import BusinessPricingBanner from "./components/BusinessPricingBanner";
 import RoleSelectorModal from "./components/RoleSelectorModal";
+import Landing from "./components/Landing";
 
 const Page = () => {
   const [isRoleSelectorOpen, setIsRoleSelectorOpen] = useState(false);

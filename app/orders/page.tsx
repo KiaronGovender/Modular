@@ -42,7 +42,7 @@ export default function Orders() {
     <>
       <Navbar />
       <div className="min-h-screen bg-background py-12">
-        <div className="max-w-300 mx-auto px-8">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -183,9 +183,8 @@ export default function Orders() {
                                 className="flex items-center gap-2 flex-1"
                               >
                                 <div
-                                  className={`h-1 flex-1 rounded-full transition-colors ${
-                                    isComplete ? "bg-primary" : "bg-muted"
-                                  }`}
+                                  className={`h-1 flex-1 rounded-full transition-colors ${isComplete ? "bg-primary" : "bg-muted"
+                                    }`}
                                 />
                                 {isCurrent && (
                                   <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
